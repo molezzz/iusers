@@ -1,0 +1,12 @@
+zh-CN:
+  formtastic:
+      titles:        
+      labels:        
+      hints:
+      placeholders:        
+      actions:
+        create: "创建 %{model}"
+        update: "保存"
+        reset: "重置表单"
+        cancel: "取消"
+        dummie: "发射"

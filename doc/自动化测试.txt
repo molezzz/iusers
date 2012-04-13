@@ -1,0 +1,160 @@
+RSpec + Spork + Autotest 给Rails 3添加快速自动化测试
+二 11th, 2012 发表评论 | Trackback
+这是我发现比较快速的方法，从头至尾，一共10步，很适合新手一步步照着做。
+
+1、新建工程时不使用test-unit
+rails new myapp --skip-test-unit
+2、添加gem
+修改Gemfile
+
+group :development, :test do
+  gem 'rspec-rails'	#会自动引用RSpec
+  gem 'spork'		#引入Spork
+  gem "autotest-rails"	#与ZenTest一起实现自动化测试
+  gem "ZenTest"
+end
+
+安装
+
+bundle install
+3、配置rspec
+rails generate rspec:install
+会生成以下文件：
+.rspec	rspec配置。
+spec/	所有测试都在这个目录。
+spec/spec_helper.rb
+
+此时即可”bundle exec rspec spec/”或“rake”来执行RSpec测试。
+
+4、Spork加速原理
+RSpec默认每执行一次都要加载一次工程环境初始化一些数据，这要耗费很长时间。Sprok启动时会自动加载工程环境，然后生成几个fork分支，以DRb形式可供RSpec调用。所有在RSpec执行时就不必再重新加载工程环境。
+
+5、安装Spork
+spork --bootstrap
+输出
+
+Using RSpec
+Bootstrapping /Users/peter/dev/rails/myapp/spec/spec_helper.rb.
+Done. Edit /Users/peter/dev/rails/myapp/spec/spec_helper.rb now with your favorite text editor and follow the instructions.
+上面做的就是修改spec/spec_helper.rb文件，在其头部添加了两段方法。Spork.prefork(只在启动时执行一次)和Spork.each_run(每次被RSpec调用时均被执行)。
+
+6、修改RSpec配置，实现RSpec与Sprok交互
+继续修改spec/spec_helper.rb，修改后大概如下：
+
+require 'spork'
+
+Spork.prefork do
+  ENV["RAILS_ENV"] ||= 'test'
+  require File.expand_path("../../config/environment", __FILE__)
+  require 'rspec/rails'
+  require 'rspec/autorun'
+
+  Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
+
+  RSpec.configure do |config|
+    config.mock_with :rspec
+    config.fixture_path = "#{::Rails.root}/spec/fixtures"
+    config.use_transactional_fixtures = true
+    config.infer_base_class_for_anonymous_controllers = false
+  end
+
+end
+
+Spork.each_run do
+  load "#{Rails.root}/config/routes.rb"
+  Dir["#{Rails.root}/app/**/*.rb"].each { |f| load f }
+end
+7、告诉RSpec我们使用的Spork
+修改”.rspec”文件，在其中添加–drb，修改后”.rspec”的如下：
+
+--colour
+--drb
+8、此时RSpec与Spork即可完美结合了
+启动Spork方法
+
+Spork
+执行RSpec方法
+
+bundle exec rspec spec/
+此时会发现RSpec执行时间明显缩短了。但如果通过执行”rake”来启动RSpec，仍然会很慢，这是因为rake启动时会加载工程环境，为所有tasks做准备。
+
+9、添加Autotest自动执行测试
+启动Autotest
+
+bundle exec autotest
+Autotest就会自动启动，并监听文件变化，一旦改变，会立即执行改变部分相关的测试。
+添加Autotest是最简单的，这是因为RSpec内部已经添加了对Autotest的一些支持，也是Rspec Rails推荐的做法。
+简单也有一些问题，如Autotest自定义性不强，不够灵活。如果你追求自定义那就用Guard吧。
+
+10、一个陷阱
+此时当你修改app/models/person.rb时，可能并不会自动执行RSpec测试，这是因为Rails 的test环境默认对class做了缓存。
+修改“config/environments/test.rb”
+
+#config/environments/test.rb
+#config.cache_classes = true #change this line to
+config.cache_classes = false
+参考链接：
+autotest-rails: https://github.com/seattlerb/autotest-rails
+rspec-rails: https://github.com/rspec/rspec-rails
+Guard: https://github.com/guard/guard
+
+Spork + Rails 3 + RSpec + Autotest + Growl实现Mac下快速自动化测试并Growl通知测试结果
+http://mikbe.tk/2011/02/10/blazingly-fast-tests/
+Spork + Rails 3 + RSpec + Watchr测试
+http://www.rubyinside.com/how-to-rails-3-and-rspec-2-4336.html
+Spork + Rails 3+ Cucumber + RSpec
+http://chrismdp.github.com/2010/11/getting-spork-working-now-on-rails-3-rspec-2-and-cucumber/
+
+
+使用Watchr让specs自动运行
+假设我们正在开发项目，不停的对model和controller进行修改，如果每次的修改都要手动的调用rake 或 bundle exec rspec 来执行spec，是不是很不爽。如果spec能在相关文件被修改时自动的执行会不会很爽？使用 watchr就可以轻松的实现（一些人更偏向于使用autotest，但经过我的实践，watchr在更多的方面上会显得灵活和实用）。
+
+但若你实在喜欢autotest， Mike Bethany在他的博客写了一篇教程，是关于在OS X下如何配置使用autotest
+
+在Gemfile的测试和开发的部分添加watchr包引用：
+
+group :development, :test do
+  gem 'rspec-rails'
+	...
+  gem 'watchr'
+end
+再次运行bundle来进行安装。
+
+接着，手工在根目录创建一个.watchr 文件，并将下面代码粘贴到该文件内。
+
+def run_spec(file)
+  unless File.exist?(file)
+    puts "#{file} does not exist"
+    return
+  end
+
+ 
+  puts "Running #{file}"
+  system "bundle exec rspec #{file}"
+  puts
+end
+
+ 
+watch("spec/.*/*_spec.rb") do |match|
+  run_spec match[0]
+end
+
+ 
+watch("app/(.*/.*).rb") do |match|
+  run_spec %{spec/#{match[1]}_spec.rb}
+end
+Watchr 脚本调用watchr进程来做如下事情：
+
+一旦spec/目录下有以_spec.rb结尾的文件发生了改变，watchr便会自动运行run_spec 方法来对该文件进行测试。
+一旦有app/目录下有.rb结尾的文件发生了改变，立即调用run_spec 方法来执行该文件所对应的spec测试文件。
+run_file 通过文件名来检查spec文件是否存在, 然后来运行该spec (调用 system)
+如果直接运行watchr .watchr来调用.watchr脚本，你会发现没有任何反应。但试着修改一下 spec/models/person_spec.rb文件（即使只是不做逻辑修改的保存），spec也会被自动的执行。同样，修改app/models/person.rb也会有同样的效果。最后通过CTRL+C来结束watchr的进程。
+
+这仅是一个小的示例，Watchr能做的绝不只这些 ;-)
+
+如果你喜欢输入rake watchr的方法来调用（对于XX非常好用），也好办，手工创建一个文件lib/tasks/watchr.rake然后，将下面的代码粘贴到该文件内：
+
+desc "Run watchr"
+task :watchr do
+  sh %{bundle exec watchr .watchr}
+end

@@ -1,0 +1,51 @@
+zh-CN:
+  activerecord:
+    models:
+      admin_user: "管理员"
+      account: "用户"            
+    attributes:
+      account:
+        status_id: "状态"
+        username: "用户名"
+        email: "电子邮件"
+        email_confirmation: "再次输入电子邮件"
+        uuid: "唯一识别码"
+        phone: "手机号"
+        password: "密码"
+        password_confirmation: "再次输入密码"
+        encrypted_password: "密码"
+        salt: "盐值"
+        secques: "安全验证问题码"
+        reg_ip: "注册IP地址"
+        login_at: "最后登录时间"        
+        created_at: "创建时间"
+        updated_at: "最后修改时间" 
+        status_options:
+         normal: "正常"         
+         invalid: "无效"
+         locked: "已锁定"
+      category:
+        name: "分类名称"
+        remark: "备注"
+        parent_id: "上级分类"
+        parent: "上级分类"
+        children: "子类"
+        created_at: "创建时间"
+        updated_at: "最后修改时间" 
+    tips:      
+      account:
+        username: "例如：bdall"
+        email: "例如：user@bdall.com"
+        phone: "例如：13900000000"
+        password_for_change: "留空保留原有密码。修改密码请直接填写，并在下面的框确认输入。"
+    errors:
+      account:
+        not_email: "不是有效的电子邮件地址"
+        not_mobile: "不是有效的手机号码"
+  views:
+    pagination:
+      truncate: "..."
+      first: "第一页"
+      previous: "前一页"
+      next: "下一页"
+      last: "最后"

@@ -1,0 +1,47 @@
+rails 3 有很多新属性，建议使用
+
+
+1、验证部分改进
+==================================================
+
+新的验证方法接收以下选项:
+
+:acceptance => Boolean
+:confirmation => Boolean
+:exclusion => { :in => Ennumerable }
+:inclusion => { :in => Ennumerable }
+:format => { :with => Regexp }
+:length => { :minimum => Fixnum, maximum => Fixnum, }
+:numericality => Boolean
+:presence => Boolean
+:uniqueness => Boolean
+
+例如
+validates :email,:presence => true,
+                   :uniqueness => true,
+                   :confirmation => true,
+                   :format => {:with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i}
+
+
+还可以自定义自己的验证类（将验证类放在lib目录下，或放在config/initializers/validators.rb，或app下建立目录validators）
+
+class IntenseFilmTitleValidator < ActiveModel::EachValidator
+  def validate_each(record, attribute, value)
+    record.errors[attribute] << "must start with 'The'" unless value =~ /^The/
+  end
+end
+ 
+class SpendValidator < ActiveModel::EachValidator
+  def validate_each(record, attribute, value)
+    spend = case options[:size]
+      when :big then 100000000
+      when :small then 100000
+    end
+    record.errors[attribute] << "must not exceed #{spend}" if value > spend
+  end
+end
+ 
+class Film < ActiveRecord::Base
+  validates :title, :presence => true, :intense_film_title => true
+  validates :budget, :spend => { :size => :big } # using custom options
+end

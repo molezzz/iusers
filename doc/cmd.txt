@@ -1,0 +1,19 @@
+#环境
+rails new iusers --skip-test-unit
+
+#模型
+rails generate model account status_id:integer username:string:index email:string:index phone:string:index uuid:string:index encrypted_password:string salt:string secques:string reg_ip:string login_at:datetime
+
+#控制器
+rails generate controller merchants
+
+#activeadmin
+rails generate active_admin:install
+rails generate active_admin:resource [MyModelName]
+
+#carrierwave
+rails generate uploader [name]
+
+#测试
+rails generate rspec:install
+rails generate rspec_model account
