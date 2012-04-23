@@ -13,7 +13,7 @@ ActiveAdmin.register Account do
   
   index do |a|
     column :id,:sortable => :id
-    column :avatar,:sortable => false do |a|
+    column :avatar,:sortable => false do |ava|
       #TODO 读取头像
     end
     column :username,:sortable => false

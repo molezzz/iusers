@@ -5,7 +5,7 @@ class CreateAccounts < ActiveRecord::Migration
       t.string :username,:null => false
       t.string :email,:null => false
       t.string :phone
-      t.string :uuid,:null => false
+      t.string :uuid,:null => false,:limit => 36
       t.string :encrypted_password
       t.string :salt
       t.string :secques

@@ -2,6 +2,14 @@ Iusers::Application.routes.draw do
   ActiveAdmin.routes(self)
 
   devise_for :admin_users, ActiveAdmin::Devise.config
+  
+  get 'login' => 'sessions#new'
+  post 'login' => 'sessions#create'
+  get 'logout' => 'sessions#destroy'
+  
+  resource :account,:only => [:show,:update]
+  
+  
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

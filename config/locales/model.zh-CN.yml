@@ -1,4 +1,7 @@
 zh-CN:
+  login:
+    errors:
+      password_incorrect: "用户名或密码错误"
   activerecord:
     models:
       admin_user: "管理员"
@@ -41,7 +44,7 @@ zh-CN:
     errors:
       account:
         not_email: "不是有效的电子邮件地址"
-        not_mobile: "不是有效的手机号码"
+        not_mobile: "不是有效的手机号码"        
   views:
     pagination:
       truncate: "..."

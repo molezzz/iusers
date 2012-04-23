@@ -1,0 +1,13 @@
+<div><%=@account.login_errors%></div>
+<div style="width:50%;margin-top: 100px;">
+<%= semantic_form_for(@account,:url => login_path,:html => {:method => :post})  do |f| %>
+  <%= f.inputs :name => '登陆' do %>
+    <%= f.input :username %>
+    <%= f.input :password,:as => :password%>
+  <%end%>
+  <%= f.actions do %>
+    <%= f.action :submit, :label => '登陆' %>
+    <%= f.action :cancel, :as => :link,:label => '注册' %>
+  <% end %>
+<% end %>
+</div>

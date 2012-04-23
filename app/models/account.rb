@@ -7,7 +7,8 @@ class Account < ActiveRecord::Base
                 :email_confirmation,
                 #email的验证
                 :email_hash,
-                :terms_of_service
+                :terms_of_service,
+                :login_errors
                 
   #表单可访问字段（白名单）
   attr_accessible :username,
@@ -38,8 +39,52 @@ class Account < ActiveRecord::Base
   #用户协议
   #validates :terms_of_service,:acceptance => true
   
+  #通过标识符查找用户 自动判断 username email uuid phone
+  #identifier <object>
+  def self.search(identifier)
+    user = nil
+    if identifier =~ /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i
+      #email
+      user = Account.where(:email => identifier).first      
+    elsif identifier =~ /^0{0,1}(13[0-9]|15[0-9]|18[0-9]|14[0-9])[0-9]{8}$/
+      #手机号
+      user = Account.where(:phone => identifier).first
+    elsif identifier =~ /^[0-9A-Za-z]{8}-[0-9A-Za-z]{4}-[0-9A-Za-z]{4}-[0-9A-Za-z]{4}-[0-9A-Za-z]{12}$/
+      #uuid
+      user = Account.where(:uuid => identifier).first     
+    end
+    #将标识符作为用户名重新查询
+    if user.nil?    
+      user = Account.where(:username => identifier).first
+    end
+        
+    user
+  end
+  
+  #检查用户是否可以登陆
+  #param password <string>
+  #return <boolean>
+  def login?(password)
+    self.login_errors = []    
+    if verify(password)
+      #TODO 其他检测 例如用户被锁定
+      true
+    else
+      self.login_errors << I18n.t('login.errors.password_incorrect')      
+      false  
+    end
+  end
+  
+  #生成表单中的email hash
   def get_email_hash
     Digest::MD5.hexdigest("#{email}-bdall-iusers")
+  end
+  
+  #验证密码 空密码返回
+  #param password <string>
+  #return <boolean>
+  def verify(password)
+    !password.blank? && self.encrypted_password ==  Digest::MD5.hexdigest("#{Digest::MD5.hexdigest(password)}#{self.salt}")
   end
   
   protected

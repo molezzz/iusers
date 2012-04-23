@@ -5,11 +5,15 @@ rails new iusers --skip-test-unit
 rails generate model account status_id:integer username:string:index email:string:index phone:string:index uuid:string:index encrypted_password:string salt:string secques:string reg_ip:string login_at:datetime
 
 #控制器
-rails generate controller merchants
+rails generate controller sessions
+rails generate controller accounts
 
 #activeadmin
 rails generate active_admin:install
 rails generate active_admin:resource [MyModelName]
+
+#cancan
+rails generate cancan:ability
 
 #carrierwave
 rails generate uploader [name]
